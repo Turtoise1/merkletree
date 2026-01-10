@@ -10,24 +10,18 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MerkleTreeNode {
     private byte[] hash;
+    private TestComposite composite;
     private List<MerkleTreeNode> children = new ArrayList<>();
     private final HashAlgorithm hashAlgorithm;
 
-    public MerkleTreeNode(TestObject testObject, HashAlgorithm hashAlgorithm) {
-        this.hashAlgorithm = hashAlgorithm;
-        hash = CryptoUtils.hash(testObject.toString().getBytes(), hashAlgorithm);
-    }
-
     public MerkleTreeNode(TestComposite testComposite, HashAlgorithm hashAlgorithm) {
         this.hashAlgorithm = hashAlgorithm;
-        for (TestObject leafChild : testComposite.getLeafChildren()) {
-            children.add(new MerkleTreeNode(leafChild, hashAlgorithm));
-        }
-        for (TestComposite compChild : testComposite.getCompositeChildren()) {
+        this.composite = testComposite;
+        for (TestComposite compChild : testComposite.getChildren()) {
             children.add(new MerkleTreeNode(compChild, hashAlgorithm));
         }
-        byte[][] childrenHashes = children.stream().map(MerkleTreeNode::getHash).toArray(byte[][]::new);
-        hash = calculateHash(childrenHashes);
+        byte[][] childHashes = children.stream().map(MerkleTreeNode::getHash).toArray(byte[][]::new);
+        calculateHash(childHashes);
     }
 
     public byte[] getHash() {
@@ -38,9 +32,23 @@ public class MerkleTreeNode {
         return children;
     }
 
-    private byte[] calculateHash(byte[][] childrenHashes) {
-        Arrays.sort(childrenHashes);
-        String concatenatedHashes = Arrays.stream(childrenHashes).map(Arrays::toString).collect(Collectors.joining());
-        return CryptoUtils.hash(concatenatedHashes.getBytes(), hashAlgorithm);
+    /**
+     * Calculate hash of {@link MerkleTreeNode#composite} content and add together with {@code childrenHashes}. Sort and
+     * concatenate {@code allHashes} and calculate the own hash from the result.
+     *
+     * @param childrenHashes The hashes of all child merkle tree nodes.
+     */
+    private void calculateHash(byte[][] childrenHashes) {
+
+        byte[] compositeContentHash = CryptoUtils.hash(composite.getContent().getBytes(), hashAlgorithm);
+
+        byte[][] allHashes = new byte[childrenHashes.length + 1][];
+        System.arraycopy(childrenHashes, 0, allHashes, 0, childrenHashes.length);
+        allHashes[childrenHashes.length] = compositeContentHash;
+
+        Arrays.sort(allHashes);
+        String concatenatedHashes = Arrays.stream(allHashes).map(Arrays::toString).collect(Collectors.joining());
+
+        hash = CryptoUtils.hash(concatenatedHashes.getBytes(), hashAlgorithm);
     }
 }

@@ -7,13 +7,22 @@ import lombok.Data;
 @Data
 public class TestComposite {
 
-    private List<TestObject> leafChildren;
+    private String content = "";
+    private List<TestComposite> children;
 
-    private List<TestComposite> compositeChildren;
-
-    public TestComposite(List<TestObject> testObjects, List<TestComposite> testComposites) {
-        this.leafChildren = testObjects;
-        this.compositeChildren = testComposites;
+    public TestComposite(List<TestComposite> children) {
+        this.children = children;
+        generateRandomContent();
     }
 
+    private void generateRandomContent() {
+        int length = randomInt();
+        for (int i = 0; i < length; i++) {
+            content += String.valueOf(randomInt());
+        }
+    }
+
+    private int randomInt() {
+        return (int) (Math.random() * 100);
+    }
 }
