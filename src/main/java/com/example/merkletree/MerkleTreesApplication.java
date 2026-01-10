@@ -1,12 +1,26 @@
 package com.example.merkletree;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.asn1.tsp.ArchiveTimeStamp;
+import org.bouncycastle.asn1.tsp.PartialHashtree;
+import org.bouncycastle.asn1.tsp.TimeStampReq;
+import org.bouncycastle.asn1.tsp.TimeStampResp;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.cms.CMSSignedData;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.tsp.TimeStampRequest;
+import org.bouncycastle.tsp.TimeStampRequestGenerator;
+import org.bouncycastle.tsp.TimeStampResponse;
+import org.bouncycastle.tsp.ers.ERSArchiveTimeStamp;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -69,16 +83,72 @@ public class MerkleTreesApplication {
      * ArchiveTimeStamp MUST be present and specify the hash algorithm
      * of the hash tree.
      */
-    public ArchiveTimeStamp createArchiveTimestamp(TestComposite testComposite) {
+    public ArchiveTimeStamp createArchiveTimestamp(TestComposite testComposite, HashAlgorithm hashAlgorithm) {
         // Generate hash values
-        MerkleTreeNode tree = new MerkleTreeNode(testComposite, HashAlgorithm.SHA256);
+        MerkleTreeNode tree = new MerkleTreeNode(testComposite, hashAlgorithm);
         byte[] rootHash = tree.getHash();
 
         // Obtain a timestamp for the root hash value
-        ContentInfo timeStamp = new ContentInfo(contentType, content);
+        TimeStampRequestGenerator generator = new TimeStampRequestGenerator();
+        TimeStampRequest request = generator.generate(hashAlgorithm.getOID(), rootHash);
+        ContentInfo timeStamp = requestTimeStamp(request);
+
+        PartialHashtree[] reducedHashTree = tree.getPartial();
 
         // Create the archive timestamp
-        ArchiveTimeStamp archiveTimeStamp = new ArchiveTimeStamp(digestAlgorithm, reducedHashTree, timeStamp);
+        AlgorithmIdentifier identifier = hashAlgorithm.getOID();
+
+        ArchiveTimeStamp archiveTimeStamp = new ArchiveTimeStamp(identifier, reducedHashTree, timeStamp);
         return archiveTimeStamp;
     }
+
+    /**
+     * Taken from
+     * https://www.javatips.net/api/jsign-master/jsign-core/src/main/java/net/jsign/timestamp/RFC3161Timestamper.java
+     *
+     * @param request
+     * @return
+     * @throws IOException
+     */
+    private CMSSignedData requestTimeStamp(TimeStampRequest request) throws IOException {
+        byte encodedRequest[] = request.getEncoded();
+        URL tsaurl = URI.create("https://zeitstempel.dfn.de/").toURL();
+
+        HttpURLConnection conn = (HttpURLConnection) tsaurl.openConnection();
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(10000);
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setUseCaches(false);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-type", "application/timestamp-query");
+        conn.setRequestProperty("Content-length", String.valueOf(encodedRequest.length));
+        conn.setRequestProperty("Accept", "application/timestamp-reply");
+        conn.setRequestProperty("User-Agent", "Transport");
+
+        conn.getOutputStream().write(encodedRequest);
+        conn.getOutputStream().flush();
+
+        if (conn.getResponseCode() >= 400) {
+            throw new IOException("Unable to complete the timestamping due to HTTP error: " + conn.getResponseCode()
+                    + " - " + conn.getResponseMessage());
+        }
+
+        try (ASN1InputStream inputStream = new ASN1InputStream(conn.getInputStream())) {
+
+            TimeStampResp resp = TimeStampResp.getInstance(inputStream.readObject());
+            TimeStampResponse response = new TimeStampResponse(resp);
+            response.validate(request);
+            if (response.getStatus() != 0) {
+                throw new IOException("Unable to complete the timestamping due to an invalid response ("
+                        + response.getStatusString() + ")");
+            }
+
+            return response.getTimeStampToken().toCMSSignedData();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to complete the timestamping", e);
+        }
+    }
+
 }
