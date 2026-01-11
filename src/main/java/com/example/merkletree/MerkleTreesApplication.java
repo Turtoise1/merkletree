@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +17,14 @@ import org.bouncycastle.asn1.tsp.TimeStampReq;
 import org.bouncycastle.asn1.tsp.TimeStampResp;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.crypto.util.AlgorithmIdentifierFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.AlgorithmNameFinder;
+import org.bouncycastle.operator.DefaultAlgorithmNameFinder;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.tsp.ers.ERSArchiveTimeStamp;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -91,13 +96,16 @@ public class MerkleTreesApplication {
         // Obtain a timestamp for the root hash value
         TimeStampRequestGenerator generator = new TimeStampRequestGenerator();
         TimeStampRequest request = generator.generate(hashAlgorithm.getOID(), rootHash);
-        ContentInfo timeStamp = requestTimeStamp(request);
+        ContentInfo timeStamp = requestTimeStamp(request).toCMSSignedData().toASN1Structure();
 
         PartialHashtree[] reducedHashTree = tree.getPartial();
 
-        // Create the archive timestamp
-        AlgorithmIdentifier identifier = hashAlgorithm.getOID();
+        SecureRandom secureRandom = new SecureRandom();
+        int keySize = 256; // -1 if unknown
+        AlgorithmIdentifier identifier = AlgorithmIdentifierFactory.generateEncryptionAlgID(hashAlgorithm.getOID(),
+                keySize, secureRandom);
 
+        // Create the archive timestamp
         ArchiveTimeStamp archiveTimeStamp = new ArchiveTimeStamp(identifier, reducedHashTree, timeStamp);
         return archiveTimeStamp;
     }
@@ -110,7 +118,7 @@ public class MerkleTreesApplication {
      * @return
      * @throws IOException
      */
-    private CMSSignedData requestTimeStamp(TimeStampRequest request) throws IOException {
+    private TimeStampToken requestTimeStamp(TimeStampRequest request) throws IOException {
         byte encodedRequest[] = request.getEncoded();
         URL tsaurl = URI.create("https://zeitstempel.dfn.de/").toURL();
 
@@ -144,7 +152,7 @@ public class MerkleTreesApplication {
                         + response.getStatusString() + ")");
             }
 
-            return response.getTimeStampToken().toCMSSignedData();
+            return response.getTimeStampToken();
 
         } catch (Exception e) {
             throw new RuntimeException("Unable to complete the timestamping", e);
