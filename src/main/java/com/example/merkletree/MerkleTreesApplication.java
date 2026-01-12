@@ -5,9 +5,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.security.SecureRandom;
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -17,7 +17,6 @@ import org.bouncycastle.asn1.tsp.ArchiveTimeStamp;
 import org.bouncycastle.asn1.tsp.PartialHashtree;
 import org.bouncycastle.asn1.tsp.TimeStampResp;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.crypto.util.AlgorithmIdentifierFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
@@ -40,6 +39,11 @@ public class MerkleTreesApplication {
     public static final String PROVIDER_NAME = "BC";
 
     @PostConstruct
+    public void setup() {
+        setupCrypto();
+        test();
+    }
+
     public void setupCrypto() {
 
         Security.addProvider(new BouncyCastleProvider());
@@ -68,6 +72,16 @@ public class MerkleTreesApplication {
         PartialHashtree[] reducedTree = tree.getPathToAncestor(ancestorNode.getHash());
 
         ArchiveTimeStamp archiveTimeStamp = createArchiveTimestamp(rootHash, reducedTree, hashAlgorithm);
+        System.out.println("Generated archive timestamp: " + debugArchiveTimeStamp(archiveTimeStamp));
+    }
+
+    private String debugArchiveTimeStamp(ArchiveTimeStamp archiveTimeStamp) {
+        return "ArchiveTimeStamp{" +
+                "digestAlgorithm=" + archiveTimeStamp.getDigestAlgorithm() +
+                ", reducedHashTree=" + Arrays.toString(archiveTimeStamp.getReducedHashTree()) +
+                ", getHashTreeLeaf()=" + Arrays.toString(archiveTimeStamp.getHashTreeLeaf().getValues()) +
+                ", getTimeStamp().getContent()=" + archiveTimeStamp.getTimeStamp().getContent() +
+                '}';
     }
 
     /**
@@ -83,13 +97,10 @@ public class MerkleTreesApplication {
 
         // Obtain a timestamp for the root hash value
         TimeStampRequestGenerator generator = new TimeStampRequestGenerator();
-        TimeStampRequest request = generator.generate(hashAlgorithm.getOID(), rootHash);
+        TimeStampRequest request = generator.generate(hashAlgorithm.getTspOid(), rootHash);
         ContentInfo timeStamp = requestTimeStamp(request).toCMSSignedData().toASN1Structure();
 
-        SecureRandom secureRandom = new SecureRandom();
-        int keySize = 256; // -1 if unknown
-        AlgorithmIdentifier identifier = AlgorithmIdentifierFactory.generateEncryptionAlgID(hashAlgorithm.getOID(),
-                keySize, secureRandom);
+        AlgorithmIdentifier identifier = new AlgorithmIdentifier(hashAlgorithm.getTspOid());
 
         // Create the archive timestamp
         ArchiveTimeStamp archiveTimeStamp = new ArchiveTimeStamp(identifier, reducedHashTree, timeStamp);

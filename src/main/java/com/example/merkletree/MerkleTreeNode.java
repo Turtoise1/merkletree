@@ -2,6 +2,7 @@ package com.example.merkletree;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,7 @@ public class MerkleTreeNode {
         // recursion anchor
         if (Arrays.equals(hash, ancestorHash)) {
             path = new PartialHashtree[1];
-            path[0] = new PartialHashtree(getContentHashes());
+            path[0] = new PartialHashtree(getContentHashesSorted());
             return path;
         }
 
@@ -56,7 +57,7 @@ public class MerkleTreeNode {
             PartialHashtree[] childPath = child.getPathToAncestor(ancestorHash);
             if (childPath != null) {
                 path = new PartialHashtree[childPath.length + 1];
-                path[0] = new PartialHashtree(getContentHashes());
+                path[0] = new PartialHashtree(getContentHashesSorted());
                 System.arraycopy(childPath, 0, path, 1, childPath.length);
                 return path;
             }
@@ -68,7 +69,7 @@ public class MerkleTreeNode {
 
     /**
      * Try to find an ancestor node that was built on the given composite.
-     * 
+     *
      * @param composite The composite to search in this tree.
      * @return The ancestor node or {@code null} if not found.
      */
@@ -90,13 +91,24 @@ public class MerkleTreeNode {
     /**
      * Gets the hash of the corresponding test composite content as well as the hashes of all child merkle tree nodes.
      */
-    private byte[][] getContentHashes() {
-        byte[][] childHashes = new byte[children.size() + 1][];
+    private byte[][] getContentHashesSorted() {
+        byte[][] hashes = new byte[children.size() + 1][];
         for (int i = 0; i < children.size(); i++) {
-            childHashes[i] = children.get(i).getHash();
+            hashes[i] = children.get(i).getHash();
         }
-        childHashes[children.size()] = CryptoUtils.hash(composite.getContent().getBytes(), hashAlgorithm);
-        return childHashes;
+        hashes[children.size()] = CryptoUtils.hash(composite.getContent().getBytes(), hashAlgorithm);
+        Arrays.sort(hashes, new Comparator<byte[]>() {
+            @Override
+            public int compare(byte[] a, byte[] b) {
+                for (int i = 0; i < Math.min(a.length, b.length); i++) {
+                    if (a[i] != b[i]) {
+                        return Byte.compare(a[i], b[i]);
+                    }
+                }
+                return Integer.compare(a.length, b.length);
+            }
+        });
+        return hashes;
     }
 
     /**
@@ -106,8 +118,7 @@ public class MerkleTreeNode {
      * @param childrenHashes The hashes of all child merkle tree nodes.
      */
     private void calculateHash() {
-        byte[][] allHashes = getContentHashes();
-        Arrays.sort(allHashes);
+        byte[][] allHashes = getContentHashesSorted();
 
         String concatenatedHashes = Arrays.stream(allHashes).map(Arrays::toString).collect(Collectors.joining());
 
