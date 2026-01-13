@@ -4,32 +4,25 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.tsp.TSPAlgorithms;
 
 public enum HashAlgorithm {
-    SHA256("SHA-256", TSPAlgorithms.SHA256, NISTObjectIdentifiers.id_sha256);
+    SHA256("SHA-256", TSPAlgorithms.SHA256);
 
     private String algorithmName;
-    private ASN1ObjectIdentifier tspOid;
-    private ASN1ObjectIdentifier nistOid;
+    private ASN1ObjectIdentifier oid;
 
-    HashAlgorithm(String algorithmName, ASN1ObjectIdentifier tspOid, ASN1ObjectIdentifier nistOid) {
+    HashAlgorithm(String algorithmName, ASN1ObjectIdentifier tspOid) {
         this.algorithmName = algorithmName;
-        this.tspOid = tspOid;
-        this.nistOid = nistOid;
+        this.oid = tspOid;
     }
 
     public String getAlgorithmName() {
         return algorithmName;
     }
 
-    public ASN1ObjectIdentifier getTspOid() {
-        return tspOid;
-    }
-
-    public ASN1ObjectIdentifier getNistOid() {
-        return nistOid;
+    public ASN1ObjectIdentifier getOid() {
+        return oid;
     }
 
     public MessageDigest getMessageDigest() {

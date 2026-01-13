@@ -32,10 +32,10 @@ public class TimeStamping {
 
         // Obtain a timestamp for the root hash value
         TimeStampRequestGenerator generator = new TimeStampRequestGenerator();
-        TimeStampRequest request = generator.generate(hashAlgorithm.getTspOid(), rootHash);
+        TimeStampRequest request = generator.generate(hashAlgorithm.getOid(), rootHash);
         ContentInfo timeStamp = requestTimeStamp(request).toCMSSignedData().toASN1Structure();
 
-        AlgorithmIdentifier identifier = new AlgorithmIdentifier(hashAlgorithm.getTspOid());
+        AlgorithmIdentifier identifier = new AlgorithmIdentifier(hashAlgorithm.getOid());
 
         // Create the archive timestamp
         ArchiveTimeStamp archiveTimeStamp = new ArchiveTimeStamp(identifier, reducedHashTree, timeStamp);

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.bouncycastle.asn1.tsp.PartialHashtree;
 
@@ -36,12 +35,14 @@ public class MerkleTreeNode {
 
     /**
      * Search the ancestors of this node for some node where {@link MerkleTreeNode#hash} matches the given hash. Returns
-     * all nodes and their children that lie on the path as partial hashtrees.
+     * all nodes and their children that lie on the path as partial hashtrees. The path is returned in reverse order,
+     * starting with the ancestor node and ending with this node.
      *
      * @param ancestorHash The hash to search for.
-     * @return The list of partial hashtrees on the path to the ancestor node, or {@code null} if not found.
+     * @return The list of partial hashtrees on the path from the ancestor node to this node, or {@code null} if not
+     *         found.
      */
-    public PartialHashtree[] getPathToAncestor(byte[] ancestorHash) {
+    public PartialHashtree[] getPathFromAncestor(byte[] ancestorHash) {
         PartialHashtree[] path = null;
 
         // recursion anchor
@@ -54,11 +55,11 @@ public class MerkleTreeNode {
         // recursion step
         for (int i = 0; i < children.size(); i++) {
             MerkleTreeNode child = children.get(i);
-            PartialHashtree[] childPath = child.getPathToAncestor(ancestorHash);
+            PartialHashtree[] childPath = child.getPathFromAncestor(ancestorHash);
             if (childPath != null) {
                 path = new PartialHashtree[childPath.length + 1];
-                path[0] = new PartialHashtree(getContentHashesSorted());
-                System.arraycopy(childPath, 0, path, 1, childPath.length);
+                path[childPath.length] = new PartialHashtree(getContentHashesSorted());
+                System.arraycopy(childPath, 0, path, 0, childPath.length);
                 return path;
             }
         }
@@ -120,8 +121,13 @@ public class MerkleTreeNode {
     private void calculateHash() {
         byte[][] allHashes = getContentHashesSorted();
 
-        String concatenatedHashes = Arrays.stream(allHashes).map(Arrays::toString).collect(Collectors.joining());
+        byte[] concatenatedHashes = Arrays.stream(allHashes).reduce(new byte[0], (a, b) -> {
+            byte[] result = new byte[a.length + b.length];
+            System.arraycopy(a, 0, result, 0, a.length);
+            System.arraycopy(b, 0, result, a.length, b.length);
+            return result;
+        });
 
-        hash = CryptoUtils.hash(concatenatedHashes.getBytes(), hashAlgorithm);
+        hash = CryptoUtils.hash(concatenatedHashes, hashAlgorithm);
     }
 }
