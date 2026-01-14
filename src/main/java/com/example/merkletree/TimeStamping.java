@@ -33,6 +33,10 @@ public class TimeStamping {
         // Obtain a timestamp for the root hash value
         TimeStampRequestGenerator generator = new TimeStampRequestGenerator();
         TimeStampRequest request = generator.generate(hashAlgorithm.getOid(), rootHash);
+        System.out.println("messageImprint[hashAlgorithm] "
+                + request.getMessageImprint().getHashAlgorithm().getAlgorithm().toString());
+        System.out
+                .println("messageImprint[hashedMessage] " + request.getMessageImprint().getHashedMessage().toString());
         ContentInfo timeStamp = requestTimeStamp(request).toCMSSignedData().toASN1Structure();
 
         AlgorithmIdentifier identifier = new AlgorithmIdentifier(hashAlgorithm.getOid());
