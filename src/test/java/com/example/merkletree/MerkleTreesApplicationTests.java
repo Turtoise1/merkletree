@@ -49,6 +49,10 @@ class MerkleTreesApplicationTests {
         assertEquals(expectedLeaf.toString(), resultLeaf.toString());
     }
 
+    /**
+     * Verify that {@code chosenDocument} existed using the ArchiveTimeStamp according to the verification algorithm
+     * described in RFC 4998 (https://datatracker.ietf.org/doc/html/rfc4998#section-4.3).
+     */
     @Test
     public void verifyArchiveTimeStamp() throws IOException, TSPException {
         // Random test values
