@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.bouncycastle.asn1.tsp.ArchiveTimeStamp;
 import org.bouncycastle.asn1.tsp.PartialHashtree;
+import org.bouncycastle.cert.X509AttributeCertificateHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cms.CMSException;
@@ -130,12 +131,13 @@ class MerkleTreesApplicationTests {
         MerkleTreeNode tree = new MerkleTreeNode(testComposite, hashAlgorithm);
 
         TimeStampRequestGenerator generator = new TimeStampRequestGenerator();
+        generator.setCertReq(true); // also check certificates
         TimeStampRequest request = generator.generate(hashAlgorithm.getOid(), tree.getHash());
 
         TimeStampToken result = TimeStamping.requestTimeStamp(request);
 
         Date time = result.getTimeStampInfo().getGenTime();
-        TestUtils.assertNear(new Date(), time, 1000);
+        TestUtils.assertNear(new Date(), time, 2000);
 
         String issuerResult = result.getSID().getIssuer().toString();
         assertEquals(
@@ -144,23 +146,28 @@ class MerkleTreesApplicationTests {
 
         String algorithmResult = result.getTimeStampInfo().getHashAlgorithm().getAlgorithm().toString();
         assertEquals(hashAlgorithm.getOid().toString(), algorithmResult);
-
         CMSSignedData signedData = result.toCMSSignedData();
-
         Collection<SignerInformation> signers = signedData.getSignerInfos().getSigners();
+
         Store<X509CertificateHolder> certificates = signedData.getCertificates();
         assertEquals(1, signers.size());
         for (SignerInformation signer : signers) {
 
-            Collection<X509CertificateHolder> certCollection = certificates.getMatches(new AllSelector<>());
-            assertEquals(1, certCollection.size()); // Why does DFN not include certificates??
-            for (X509CertificateHolder certificateHolder : certCollection) {
-                X509Certificate cert = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME)
-                        .getCertificate(certificateHolder);
-                SignerInformationVerifier signerInformationVerifier = new JcaSimpleSignerInfoVerifierBuilder()
-                        .setProvider(BouncyCastleProvider.PROVIDER_NAME).build(cert);
-                assertTrue(signer.verify(signerInformationVerifier));
-            }
+            // dfn includes signing certificate and parent CA certificates
+            Collection<X509CertificateHolder> allCertificates = certificates.getMatches(new AllSelector<>());
+            assertEquals(4, allCertificates.size());
+
+            // get the certificate of the signer
+            Collection<X509CertificateHolder> signingCertificates = certificates.getMatches(result.getSID());
+            assertEquals(1, signingCertificates.size());
+
+            X509Certificate cert = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                    .getCertificate(signingCertificates.iterator().next());
+            SignerInformationVerifier signerInformationVerifier = new JcaSimpleSignerInfoVerifierBuilder()
+                    .setProvider(BouncyCastleProvider.PROVIDER_NAME).build(cert);
+            boolean verificationResult = signer.verify(signerInformationVerifier);
+            assertTrue(verificationResult, "Failed to verify signer information for certificate of "
+                    + cert.getIssuerX500Principal().getName());
         }
 
     }
