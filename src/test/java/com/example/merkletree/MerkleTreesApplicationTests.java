@@ -1,20 +1,34 @@
 package com.example.merkletree;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bouncycastle.asn1.tsp.ArchiveTimeStamp;
 import org.bouncycastle.asn1.tsp.PartialHashtree;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.SignerInformation;
+import org.bouncycastle.cms.SignerInformationVerifier;
+import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.bouncycastle.util.Store;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -96,6 +110,7 @@ class MerkleTreesApplicationTests {
                 CryptoUtils.sortAndFlatten(
                         result.getReducedHashTree()[result.getReducedHashTree().length - 1].getValues()),
                 hashAlgorithm);
+        // alternative: byte[] hashedMessage = result.getTimeStampDigestValue();
         byte[] hashedMessage = timeStampToken.getTimeStampInfo().getMessageImprintDigest();
         assertEquals(Arrays.toString(hashedMessage), Arrays.toString(expectedRootHash));
 
@@ -105,7 +120,8 @@ class MerkleTreesApplicationTests {
     }
 
     @Test
-    public void callRequestTimeStamp() throws IOException {
+    public void callRequestTimeStamp()
+            throws IOException, CertificateException, OperatorCreationException, CMSException {
         // Random test values
         TestComposite testComposite = generateTestComposite();
         HashAlgorithm hashAlgorithm = HashAlgorithm.SHA256;
@@ -128,6 +144,24 @@ class MerkleTreesApplicationTests {
 
         String algorithmResult = result.getTimeStampInfo().getHashAlgorithm().getAlgorithm().toString();
         assertEquals(hashAlgorithm.getOid().toString(), algorithmResult);
+
+        CMSSignedData signedData = result.toCMSSignedData();
+
+        Collection<SignerInformation> signers = signedData.getSignerInfos().getSigners();
+        Store<X509CertificateHolder> certificates = signedData.getCertificates();
+        assertEquals(1, signers.size());
+        for (SignerInformation signer : signers) {
+
+            Collection<X509CertificateHolder> certCollection = certificates.getMatches(new AllSelector<>());
+            assertEquals(1, certCollection.size()); // Why does DFN not include certificates??
+            for (X509CertificateHolder certificateHolder : certCollection) {
+                X509Certificate cert = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                        .getCertificate(certificateHolder);
+                SignerInformationVerifier signerInformationVerifier = new JcaSimpleSignerInfoVerifierBuilder()
+                        .setProvider(BouncyCastleProvider.PROVIDER_NAME).build(cert);
+                assertTrue(signer.verify(signerInformationVerifier));
+            }
+        }
 
     }
 
