@@ -15,15 +15,10 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.cms.Attribute;
-import org.bouncycastle.asn1.ess.ESSCertID;
 import org.bouncycastle.asn1.ess.ESSCertIDv2;
-import org.bouncycastle.asn1.ess.SigningCertificate;
 import org.bouncycastle.asn1.ess.SigningCertificateV2;
 import org.bouncycastle.asn1.tsp.ArchiveTimeStamp;
 import org.bouncycastle.asn1.tsp.PartialHashtree;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.cert.X509AttributeCertificateHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cms.CMSException;
@@ -32,10 +27,7 @@ import org.bouncycastle.cms.SignerInformation;
 import org.bouncycastle.cms.SignerInformationVerifier;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.operator.DigestCalculator;
-import org.bouncycastle.operator.DigestCalculatorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
@@ -232,24 +224,17 @@ class MerkleTreesApplicationTests {
                     .getMatches(new AllSelector<>());
             assertEquals(0, allCertificates.size());
 
+            // ESSCertID hash from the signer attributes should have the hash of the certificate holder
+            SigningCertificateV2 signingCertificate = SigningCertificateV2.getInstance(signer.getSignedAttributes()
+                    .get(new ASN1ObjectIdentifier("1.2.840.113549.1.9.16.2.47")).getAttrValues().getObjectAt(0)); // id-aa-signingCertificate
+            ESSCertIDv2 essCertID = signingCertificate.getCerts()[0];
+
             X509CertificateHolder certificateHolder = TestUtils
                     .loadCertificateFromPEM(
                             "src/test/resources/certificates/dfn-pki-global-bundle/DFN-Verein_Global_Issuing_CA.pem");
+            byte[] expectedHash = CryptoUtils.hash(certificateHolder.getEncoded(), hashAlgorithm);
 
-            // check correct signer
-            SigningCertificateV2 signingCertificate = SigningCertificateV2.getInstance(signer.getSignedAttributes()
-                    .get(new ASN1ObjectIdentifier("1.2.840.113549.1.9.16.2.47")).getAttrValues().getObjectAt(0)); // id-aa-signingCertificate
-
-            // ESSCertID hash should be the hash of the certificate holder
-            ESSCertIDv2 essCertID = essCertID = signingCertificate.getCerts()[0];
-
-            DigestCalculatorProvider digestCalculatorProvider = new JcaDigestCalculatorProviderBuilder().build();
-            DigestCalculator digestCalculator = digestCalculatorProvider
-                    .get(new AlgorithmIdentifier(hashAlgorithm.getOid()));
-            digestCalculator.getOutputStream().write(certificateHolder.getEncoded());
-            byte[] certHash = digestCalculator.getDigest();
-
-            assertArrayEquals(certHash, essCertID.getCertHash(), "The cert hash does not match!");
+            assertArrayEquals(expectedHash, essCertID.getCertHash(), "The cert hash does not match!");
         }
 
     }
