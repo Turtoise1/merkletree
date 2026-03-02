@@ -4,6 +4,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.tsp.TSPAlgorithms;
 
 public enum HashAlgorithm {
@@ -36,5 +37,14 @@ public enum HashAlgorithm {
     @Override
     public String toString() {
         return algorithmName;
+    }
+
+    public static HashAlgorithm fromAlgorithmIdentifier(AlgorithmIdentifier hashAlgorithm) {
+        for (HashAlgorithm algorithm : HashAlgorithm.values()) {
+            if (algorithm.getOid().equals(hashAlgorithm.getAlgorithm())) {
+                return algorithm;
+            }
+        }
+        return null;
     }
 }

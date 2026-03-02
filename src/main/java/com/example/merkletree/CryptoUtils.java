@@ -6,6 +6,9 @@ import java.util.Arrays;
 public class CryptoUtils {
 
     public static byte[] hash(byte[] content, HashAlgorithm algorithm) {
+        if (algorithm == null) {
+            throw new IllegalArgumentException("null is not a valid HashAlgorithm");
+        }
         MessageDigest md = algorithm.getMessageDigest();
         return md.digest(content);
     }

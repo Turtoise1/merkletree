@@ -33,6 +33,7 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.Store;
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -166,6 +167,7 @@ class MerkleTreesApplicationTests {
             assertEquals(4, allCertificates.size());
 
             // get the certificate of the signer
+            @SuppressWarnings("unchecked")
             Collection<X509CertificateHolder> signingCertificates = certificates.getMatches(result.getSID());
             assertEquals(1, signingCertificates.size());
             X509CertificateHolder certificateHolder = signingCertificates.iterator().next();
@@ -230,11 +232,14 @@ class MerkleTreesApplicationTests {
             ESSCertIDv2 essCertID = signingCertificate.getCerts()[0];
 
             X509CertificateHolder certificateHolder = TestUtils
-                    .loadCertificateFromPEM(
-                            "src/test/resources/certificates/dfn-pki-global-bundle/DFN-Verein_Global_Issuing_CA.pem");
-            byte[] expectedHash = CryptoUtils.hash(certificateHolder.getEncoded(), hashAlgorithm);
+                    .loadCertificateFromCer("src/test/resources/certificates/PN_Zeitstempel_2023.cer");
 
-            assertArrayEquals(expectedHash, essCertID.getCertHash(), "The cert hash does not match!");
+            HashAlgorithm essHashAlgorithm = HashAlgorithm.fromAlgorithmIdentifier(essCertID.getHashAlgorithm());
+            byte[] expectedHash = CryptoUtils.hash(certificateHolder.getEncoded(), essHashAlgorithm);
+
+            assertArrayEquals(expectedHash, essCertID.getCertHash(), "Exptected certificate hash "
+                    + Hex.toHexString(expectedHash) + " but got " + Hex.toHexString(essCertID.getCertHash())
+                    + " from EssCertID!");
         }
 
     }
