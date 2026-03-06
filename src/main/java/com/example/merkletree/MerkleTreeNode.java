@@ -8,6 +8,10 @@ import org.bouncycastle.asn1.tsp.PartialHashtree;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Used to construct a merkle hash tree over a {@link TestComposite 'test composite'}. See
+ * {@link MerkleTreeNode#MerkleTreeNode(TestComposite, HashAlgorithm)}.
+ */
 @Slf4j
 public class MerkleTreeNode {
     private byte[] hash;
@@ -15,6 +19,17 @@ public class MerkleTreeNode {
     private List<MerkleTreeNode> children = new ArrayList<>();
     private final HashAlgorithm hashAlgorithm;
 
+    /**
+     * Construct a merkle hash tree over the {@code testComposite} and its children:
+     * <ol>
+     * <li>Recursively construct merkle tree nodes on the children of {@code testComposite}.</li>
+     * <li>Calculate a hash on the sorted concatenation of the hashes of all {@link MerkleTreeNode 'child nodes'}
+     * together with the hash of {@code testComposite}.</li>
+     * </ol>
+     *
+     * @param testComposite The tree data to construct the hash tree over.
+     * @param hashAlgorithm The {@link HashAlgorithm 'hash algorithm'} to use.
+     */
     public MerkleTreeNode(TestComposite testComposite, HashAlgorithm hashAlgorithm) {
         this.hashAlgorithm = hashAlgorithm;
         this.composite = testComposite;
@@ -24,10 +39,19 @@ public class MerkleTreeNode {
         calculateHash();
     }
 
+    /**
+     * @return the hash calculated in the {@link MerkleTreeNode#MerkleTreeNode(TestComposite, HashAlgorithm)
+     *         'constructor'}.
+     */
     public byte[] getHash() {
         return hash;
     }
 
+    /**
+     *
+     * @return the list of all {@link MerkleTreeNode 'child nodes'} calculated in the
+     *         {@link MerkleTreeNode#MerkleTreeNode(TestComposite, HashAlgorithm) 'constructor'}.
+     */
     public List<MerkleTreeNode> getChildren() {
         return children;
     }
@@ -89,7 +113,8 @@ public class MerkleTreeNode {
     }
 
     /**
-     * Gets the hash of the corresponding test composite content as well as the hashes of all child merkle tree nodes.
+     * Calculates the hash of the corresponding test composite content. Returns it together with the hashes of all child
+     * merkle tree nodes.
      */
     private byte[][] getHashes() {
         byte[][] hashes = new byte[children.size() + 1][];
@@ -101,21 +126,13 @@ public class MerkleTreeNode {
     }
 
     /**
-     * Gets the hash of the corresponding test composite content as well as the hashes of all child merkle tree nodes
-     * sorted and concatenated.
-     */
-    private byte[] getHashesSortedAndConcatenated() {
-        return CryptoUtils.sortAndFlatten(getHashes());
-    }
-
-    /**
      * Calculate hash of {@link MerkleTreeNode#composite} content and add together with the hashes of all child nodes.
      * Sort and concatenate all these hashes and calculate the own hash from the result.
      *
      * @param childrenHashes The hashes of all child merkle tree nodes.
      */
     private void calculateHash() {
-        byte[] allHashes = getHashesSortedAndConcatenated();
+        byte[] allHashes = CryptoUtils.sortAndFlatten(getHashes());
 
         hash = CryptoUtils.hash(allHashes, hashAlgorithm);
     }
