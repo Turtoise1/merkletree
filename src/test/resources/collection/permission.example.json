@@ -1,0 +1,123 @@
+{
+    "composite": "233c435f-fa99-4136-b29a-f81050641a88",
+    "compositeItem": "63dff858-7543-4b26-baf4-7d55bc23f692",
+    "createdOn": "2021-06-10T09:36:30+02:00",
+    "type": "PERMISSION",
+    "resource": {
+        "entries": [
+            {
+                "access": "GRANTED",
+                "embargoPeriod": "2022-07-01T12:15:00+02:00",
+                "rule": {
+                    "level": "eccbe67a-d7ee-4579-8c91-71b67cafd6a4",
+                    "policy": "ff918508-2b4b-4b77-9bbc-0de3d24b8ad0",
+                    "scope": "f73ff50d-2033-4ba6-80e4-d7952dd4fbe3",
+                    "uuid": "c0d9a0ee-3587-4a9a-bcfe-79dbfd034002"
+                },
+                "uuid": "635c4e2b-9bf1-4cb9-8887-f9feee1cced6"
+            },
+            {
+                "access": "GRANTED",
+                "embargoPeriod": "2022-07-01T12:15:00+02:00",
+                "rule": {
+                    "level": "d1fbb46f-4395-4c5e-8efe-6a9885676e69",
+                    "policy": "ff918508-2b4b-4b77-9bbc-0de3d24b8ad0",
+                    "scope": "f73ff50d-2033-4ba6-80e4-d7952dd4fbe3",
+                    "uuid": "d740fd21-72a4-41cd-af67-cadf9076e233"
+                },
+                "uuid": "f180aa1c-ae2d-462d-9b86-2bc28ac5972c"
+            },
+            {
+                "access": "GRANTED",
+                "rule": {
+                    "level": "5518de4a-34d3-4663-a508-e4a00cdccfb6",
+                    "policy": "ff918508-2b4b-4b77-9bbc-0de3d24b8ad0",
+                    "scope": "f73ff50d-2033-4ba6-80e4-d7952dd4fbe3",
+                    "uuid": "53e66865-7dbb-4e5f-8a29-8f6c36907509"
+                },
+                "uuid": "ca201395-cc33-4eab-9592-d818f9e05cf7"
+            },
+            {
+                "access": "DENIED",
+                "rule": {
+                    "level": "eccbe67a-d7ee-4579-8c91-71b67cafd6a4",
+                    "policy": "ff918508-2b4b-4b77-9bbc-0de3d24b8ad0",
+                    "scope": "0dccd4fb-6894-4f60-8447-a947e25b7824",
+                    "uuid": "0fc7023c-230d-46c2-a0a3-0ad4f7f22265"
+                },
+                "uuid": "bcfc7828-de71-466f-8d1e-c268b8b48aea"
+            },
+            {
+                "access": "ON_REQUEST",
+                "embargoPeriod": "2022-07-01T12:15:00+02:00",
+                "rule": {
+                    "level": "d1fbb46f-4395-4c5e-8efe-6a9885676e69",
+                    "policy": "ff918508-2b4b-4b77-9bbc-0de3d24b8ad0",
+                    "scope": "0dccd4fb-6894-4f60-8447-a947e25b7824",
+                    "uuid": "a1639728-f99a-453d-93db-b6da9394776a"
+                },
+                "term": "c5f96ee0-209b-4f29-a6c4-45f4844cbf4f",
+                "uuid": "a9e180d9-9404-40cc-837a-00e9ec6aad8c"
+            },
+            {
+                "access": "GRANTED",
+                "rule": {
+                    "level": "5518de4a-34d3-4663-a508-e4a00cdccfb6",
+                    "policy": "ff918508-2b4b-4b77-9bbc-0de3d24b8ad0",
+                    "scope": "0dccd4fb-6894-4f60-8447-a947e25b7824",
+                    "uuid": "e5cddad8-0d59-4a50-b7ed-dd796e0288f5"
+                },
+                "uuid": "0196865d-d954-4aa7-92fc-d4aaa866c845"
+            }
+        ],
+        "levels": [
+            {
+                "name": "Anonyme Nutzer",
+                "order": 1,
+                "type": "ANONYMOUS",
+                "uuid": "eccbe67a-d7ee-4579-8c91-71b67cafd6a4"
+            },
+            {
+                "name": "Registrierte Nutzer",
+                "order": 2,
+                "type": "REGISTERED",
+                "uuid": "d1fbb46f-4395-4c5e-8efe-6a9885676e69"
+            },
+            {
+                "name": "Datengebende",
+                "order": 3,
+                "type": "CREATOR",
+                "uuid": "5518de4a-34d3-4663-a508-e4a00cdccfb6"
+            }
+        ],
+        "policy": "ff918508-2b4b-4b77-9bbc-0de3d24b8ad0",
+        "scopes": [
+            {
+                "name": "Metadaten",
+                "order": 1,
+                "region": "d25d9419-532e-418e-9463-c3bc73ee3942",
+                "type": "METADATA",
+                "uuid": "f73ff50d-2033-4ba6-80e4-d7952dd4fbe3"
+            },
+            {
+                "name": "Inhalt",
+                "order": 2,
+                "type": "CONTENT",
+                "uuid": "0dccd4fb-6894-4f60-8447-a947e25b7824"
+            }
+        ],
+        "setting": {
+            "name": "Zugriff eingeschränkt",
+            "type": "RESTRICTED_ACCESS",
+            "uuid": "a513483c-4ef3-4b4f-9eb5-c99f80846c3b"
+        },
+        "terms": [
+            {
+                "name": "My Term",
+                "text": "Text of my Term",
+                "uuid": "c5f96ee0-209b-4f29-a6c4-45f4844cbf4f"
+            }
+        ],
+        "uuid": "395b4010-e4b8-467b-ba13-e840734b7ae4"
+    }
+}

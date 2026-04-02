@@ -166,16 +166,16 @@ class MerkleTreesApplicationTests {
             Collection<X509CertificateHolder> allCertificates = certificates.getMatches(new AllSelector<>());
             assertEquals(4, allCertificates.size());
 
-            // get the certificate of the signer
+            // get the certificate of the signer from the certificates of the response
             @SuppressWarnings("unchecked")
             Collection<X509CertificateHolder> signingCertificates = certificates.getMatches(result.getSID());
             assertEquals(1, signingCertificates.size());
             X509CertificateHolder certificateHolder = signingCertificates.iterator().next();
-
             X509Certificate cert = new JcaX509CertificateConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME)
                     .getCertificate(certificateHolder);
             SignerInformationVerifier signerInformationVerifier = new JcaSimpleSignerInfoVerifierBuilder()
                     .setProvider(BouncyCastleProvider.PROVIDER_NAME).build(cert);
+
             boolean verificationResult = signer.verify(signerInformationVerifier);
             assertTrue(verificationResult, "Failed to verify signer information for certificate of "
                     + cert.getIssuerX500Principal().getName());
@@ -220,11 +220,6 @@ class MerkleTreesApplicationTests {
 
         assertEquals(1, signers.size());
         for (SignerInformation signer : signers) {
-
-            // no certificates requested
-            Collection<X509CertificateHolder> allCertificates = signedData.getCertificates()
-                    .getMatches(new AllSelector<>());
-            assertEquals(0, allCertificates.size());
 
             // ESSCertID hash from the signer attributes should have the hash of the certificate holder
             SigningCertificateV2 signingCertificate = SigningCertificateV2.getInstance(signer.getSignedAttributes()

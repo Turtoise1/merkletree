@@ -1,0 +1,58 @@
+{
+    "composite": "233c435f-fa99-4136-b29a-f81050641a88",
+    "compositeItem": "63dff858-7543-4b26-baf4-7d55bc23f692",
+    "createdOn": "2021-06-10T09:36:30+02:00",
+    "type": "STRUCTURE",
+    "resource": {
+        "children": [
+            {
+                "children": [
+                    {
+                        "level": "REPRESENTATION",
+                        "name": "PDF",
+                        "schemaRecord": "a38661f2-5f73-4074-80ea-1f004c3eac90",
+                        "uuid": "f953521d-41c9-41d9-971f-900f1c918a7a"
+                    }
+                ],
+                "level": "DOCUMENT",
+                "name": "Paper",
+                "permissionRecord": "a8ef4497-ac9a-47f1-ae68-557aff0a1340",
+                "persistentIdentifiers": [
+                    {
+                        "identifier": "FRET-2022-100-13-IY",
+                        "type": "VPID",
+                        "uuid": "bbaefd93-fd40-4514-8fc1-35cf5241d0b4"
+                    }
+                ],
+                "schemaRecord": "1bed4bc3-e4ef-444a-a74f-fa9321aa79a5",
+                "uuid": "fbd093f4-5f68-4138-8663-e13f65c965bd"
+            },
+            {
+                "level": "DOCUMENT",
+                "name": "Datasource",
+                "permissionRecord": "fb05d50f-ade3-42c6-a1d9-baf9d2d62eb5",
+                "persistentIdentifiers": [
+                    {
+                        "identifier": "FRET-2022-100-12-JN",
+                        "type": "VPID",
+                        "uuid": "464710fc-0907-40bc-9971-d7d0f508b386"
+                    }
+                ],
+                "schemaRecord": "582ce4ab-9151-419d-80fe-ccc762a0d023",
+                "uuid": "a2bbaf34-3f48-40ec-9054-ba194d049eaf"
+            }
+        ],
+        "level": "COLLECTION",
+        "name": "My Project",
+        "permissionRecord": "164be83d-e41d-4f14-b056-915dac340113",
+        "persistentIdentifiers": [
+            {
+                "identifier": "FRET-2022-100-10-L1",
+                "type": "VPID",
+                "uuid": "a073e30c-c9a3-4504-bf90-c07e196c1764"
+            }
+        ],
+        "schemaRecord": "389486f6-58a6-4382-b23c-2f891a4200c7",
+        "uuid": "63dff858-7543-4b26-baf4-7d55bc23f692"
+    }
+}
