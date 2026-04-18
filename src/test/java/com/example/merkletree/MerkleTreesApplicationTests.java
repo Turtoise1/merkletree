@@ -37,14 +37,19 @@ import org.bouncycastle.util.encoders.Hex;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import com.example.merkletree.composite.Composite;
+import com.example.merkletree.composite.TestComposite;
+import com.example.merkletree.utils.AllSelector;
+import com.example.merkletree.utils.CryptoUtils;
+
 @SpringBootTest
 class MerkleTreesApplicationTests {
 
     @Test
     public void callCreateArchiveTimeStamp() throws IOException {
         // Random test values
-        TestComposite testComposite = generateTestComposite();
-        TestComposite chosenDocument = pickRandomAncestor(testComposite);
+        Composite testComposite = generateTestComposite();
+        Composite chosenDocument = pickRandomAncestor(testComposite);
         HashAlgorithm hashAlgorithm = HashAlgorithm.SHA256;
 
         // Generate hash tree
@@ -75,8 +80,8 @@ class MerkleTreesApplicationTests {
     @Test
     public void verifyArchiveTimeStamp() throws IOException, TSPException {
         // Random test values
-        TestComposite testComposite = generateTestComposite();
-        TestComposite chosenDocument = pickRandomAncestor(testComposite);
+        Composite testComposite = generateTestComposite();
+        Composite chosenDocument = pickRandomAncestor(testComposite);
         HashAlgorithm hashAlgorithm = HashAlgorithm.SHA256;
 
         // Generate hash tree
@@ -128,7 +133,7 @@ class MerkleTreesApplicationTests {
     public void callRequestTimeStamp()
             throws IOException, CertificateException, OperatorCreationException, CMSException {
         // Random test values
-        TestComposite testComposite = generateTestComposite();
+        Composite testComposite = generateTestComposite();
         HashAlgorithm hashAlgorithm = HashAlgorithm.SHA256;
 
         // Generate hash tree
@@ -188,7 +193,7 @@ class MerkleTreesApplicationTests {
     public void callRequestTimeStamp_withoutCertReq()
             throws IOException, CertificateException, OperatorCreationException, CMSException {
         // Random test values
-        TestComposite testComposite = generateTestComposite();
+        Composite testComposite = generateTestComposite();
         HashAlgorithm hashAlgorithm = HashAlgorithm.SHA256;
 
         // Generate hash tree
@@ -239,7 +244,7 @@ class MerkleTreesApplicationTests {
 
     }
 
-    private TestComposite generateTestComposite() {
+    private Composite generateTestComposite() {
 
         List<TestComposite> leftLeftChildren = new ArrayList<>();
         leftLeftChildren.add(new TestComposite(new ArrayList<>()));
@@ -265,15 +270,15 @@ class MerkleTreesApplicationTests {
         return root;
     }
 
-    private TestComposite pickRandomAncestor(TestComposite input) {
-        List<TestComposite> ancestors = flatten(input);
+    private Composite pickRandomAncestor(Composite input) {
+        List<Composite> ancestors = flatten(input);
         return ancestors.get(ThreadLocalRandom.current().nextInt(ancestors.size()));
     }
 
-    private List<TestComposite> flatten(TestComposite input) {
-        List<TestComposite> flattened = new ArrayList<>();
+    private List<Composite> flatten(Composite input) {
+        List<Composite> flattened = new ArrayList<>();
         flattened.add(input);
-        for (TestComposite child : input.getChildren()) {
+        for (Composite child : input.getChildren()) {
             flattened.addAll(flatten(child));
         }
         return flattened;

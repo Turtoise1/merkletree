@@ -51,9 +51,10 @@ public class Playground {
 
             // Create a list of documents to sign
             List<DSSDocument> documentsToSign = new ArrayList<>();
-            documentsToSign.add(new FileDocument("src/test/resources/collection/metadata.example.json"));
-            documentsToSign.add(new FileDocument("src/test/resources/collection/permission.example.json"));
-            documentsToSign.add(new FileDocument("src/test/resources/collection/structure.example.json"));
+
+            // Add all files from a folder (recursively)
+            File folder = new File("src/test/resources/collection/");
+            collectRecursive(folder, folder, documentsToSign);
 
             // Preparing parameters for the ASiC-E signature
             ASiCWithXAdESSignatureParameters parameters = new ASiCWithXAdESSignatureParameters();
@@ -129,6 +130,22 @@ public class Playground {
         } catch (Exception e) {
             System.err.println("Error creating ASiC container: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private static void collectRecursive(File root, File current, List<DSSDocument> docs) {
+        for (File file : current.listFiles()) {
+            if (file.isDirectory()) {
+                collectRecursive(root, file, docs);
+            } else {
+                // Preserve relative path inside ASiC container
+                String relativePath = root.toPath().relativize(file.toPath()).toString();
+
+                FileDocument doc = new FileDocument(file);
+                doc.setName(relativePath);
+
+                docs.add(doc);
+            }
         }
     }
 

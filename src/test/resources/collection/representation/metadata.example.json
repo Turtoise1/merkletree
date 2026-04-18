@@ -1,0 +1,61 @@
+{
+    "composite": "233c435f-fa99-4136-b29a-f81050641a88",
+    "compositeItem": "63dff858-7543-4b26-baf4-7d55bc23f692",
+    "createdOn": "2021-06-10T09:36:30+02:00",
+    "type": "METADATA",
+    "resource": {
+        "rootRecord": {
+            "children": [
+                {
+                    "children": [
+                        {
+                            "property": {
+                                "classifier": "VALUE",
+                                "name": "Test Text",
+                                "order": 5,
+                                "propertyValueClassifier": "test-information.string-value",
+                                "uuid": "784aa64f-0a46-4efe-9c0d-129dcc99a6e6"
+                            },
+                            "propertyEntries": [
+                                {
+                                    "uuid": "2d3f655a-9760-46bf-ac51-aa3c0f3973cd",
+                                    "variants": [
+                                        {
+                                            "contentRelation": "IsNewVersionOf",
+                                            "contentVariant": "Original",
+                                            "dataValue": "$system.StringValue$\n{\n    \"value\": \"Hello World!\"\n}",
+                                            "uuid": "f6583f6c-3c44-46d5-8152-9c7e01a401b1"
+                                        }
+                                    ]
+                                }
+                            ],
+                            "uuid": "bcdbe939-ba8f-4ca7-bd40-894cfebafe9f"
+                        }
+                    ],
+                    "property": {
+                        "classifier": "GROUP",
+                        "name": "Test Angaben",
+                        "order": 3,
+                        "propertyValueClassifier": "test-information",
+                        "uuid": "f77555c8-b37c-45cd-8ca6-70b4af050fc2"
+                    },
+                    "uuid": "4259d51c-e42c-4dde-a923-c769da373be3"
+                }
+            ],
+            "property": {
+                "classifier": "ROOT",
+                "name": "Root",
+                "order": 1,
+                "propertyValueClassifier": "root",
+                "uuid": "2e7c8891-64d2-4105-8d7f-d86f58003798"
+            },
+            "uuid": "5138b8ad-a2f9-4fad-97f6-8887902c2bb3"
+        },
+        "schema": {
+            "level": "COLLECTION",
+            "name": "Test Collection",
+            "uuid": "cc9be137-e8d8-411e-bcd8-1cb535ad3408"
+        },
+        "uuid": "164e9fd3-17ad-4c8e-b544-9e34b17adbce"
+    }
+}

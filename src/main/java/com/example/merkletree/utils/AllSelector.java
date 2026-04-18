@@ -1,4 +1,4 @@
-package com.example.merkletree;
+package com.example.merkletree.utils;
 
 import org.bouncycastle.util.Selector;
 

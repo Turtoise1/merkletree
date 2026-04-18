@@ -1,14 +1,11 @@
-package com.example.merkletree;
+package com.example.merkletree.composite;
 
 import java.util.List;
 
-import lombok.Data;
-
-@Data
-public class TestComposite {
+public class TestComposite extends Composite {
 
     private String content = "";
-    private List<TestComposite> children;
+    private final List<TestComposite> children;
 
     public TestComposite(List<TestComposite> children) {
         this.children = children;
@@ -24,5 +21,16 @@ public class TestComposite {
 
     private int randomInt() {
         return (int) (Math.random() * 100);
+    }
+
+    @Override
+    public String getContent() {
+        return content;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<Composite> getChildren() {
+        return (List<Composite>) (List<?>) children;
     }
 }

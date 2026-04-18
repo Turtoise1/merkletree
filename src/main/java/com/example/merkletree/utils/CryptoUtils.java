@@ -1,7 +1,9 @@
-package com.example.merkletree;
+package com.example.merkletree.utils;
 
 import java.security.MessageDigest;
 import java.util.Arrays;
+
+import com.example.merkletree.HashAlgorithm;
 
 public class CryptoUtils {
 
